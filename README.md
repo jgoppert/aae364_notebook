@@ -9,6 +9,8 @@ Using this notebook is not required, it is only used for in class examples.
 
 ## Environment Installation
 
+Use git to download this notebook.
+
 ```bash
 git clone git@github.com:jgoppert/aae364_notebook ~/aae364_notebook
 ```
