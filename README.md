@@ -1,10 +1,11 @@
-# aae364_notebook
-AAE364 Class Notebook
+# AAE364 Class Notebook
 
-[Installing Python](https://www.youtube.com/watch?v=YJC6ldI3hWk)
-[Github Crash Course](https://www.youtube.com/watch?v=SWYqp7iY_Tc)
+## Getting Started
+* [Installing Python](https://www.youtube.com/watch?v=YJC6ldI3hWk)
+* [Github Crash Course](https://www.youtube.com/watch?v=SWYqp7iY_Tc)
 
 
+## Environment Installation
 Create your environment from the environment.yml file.
 
 ```bash
