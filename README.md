@@ -1,4 +1,4 @@
-# AAE364 Class Notebook
+# AAE 364 Class Notebook
 
 ## Getting Started
 * [Installing Python](https://www.youtube.com/watch?v=YJC6ldI3hWk)
