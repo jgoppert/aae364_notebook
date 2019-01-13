@@ -5,7 +5,7 @@ Using this notebook is not required, it is only used for in class examples.
 ## Getting Started
 * [Installing Python](https://www.youtube.com/watch?v=YJC6ldI3hWk)
 * [Github Crash Course](https://www.youtube.com/watch?v=SWYqp7iY_Tc)
-* [JupyterLab](https://www.youtube.com/watch?v=Gzun8PpyBCo)
+* [Jupyter Notebook Intro](https://www.youtube.com/watch?v=jZ952vChhuI)
 
 ## Environment Installation
 
