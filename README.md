@@ -12,7 +12,7 @@ Using this notebook is not required, it is only used for in class examples.
 
 * [Download](https://www.anaconda.com/download/#linux)
 
-If you are using ROS with linux, I would recommend not to install anaconda to your system path, as it will override the python version that ROS expects. Instead, create a symbolic link to activate with your bin folder:
+If you are using ROS with linux, I would recommend not to install anaconda to your system path, as it will override the python version that ROS expects. Instead, create a symbolic link to activate in your ~/bin folder, which automatically gets added to your path if it exists:
 
 ```bash
 mkdir -p ~/bin
