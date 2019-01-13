@@ -12,7 +12,9 @@ Using this notebook is not required, it is only used for in class examples.
 Use git to download this notebook.
 
 ```bash
-git clone git@github.com:jgoppert/aae364_notebook ~/aae364_notebook
+mkdir -p ~/git
+cd ~/git
+git clone git@github.com:jgoppert/aae364_notebook
 ```
 
 Create your environment from the environment.yml file.
