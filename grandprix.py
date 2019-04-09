@@ -52,7 +52,7 @@ class SE2:
     return np.array([
         [0, -dtheta, dx],
         [dtheta, 0, dy],
-        [0, 0, 1]
+        [0, 0, 0]
         ])
   
   def vee(self, Omega):

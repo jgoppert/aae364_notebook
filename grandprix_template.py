@@ -22,7 +22,7 @@ class Controller:
     ###
     s = control.tf([1, 0], [0, 1])
     
-    H = 1 + 0/s + 0*s*10/(s+10)
+    H = 0.05 + 0/s + 0.05*s*10/(s+10)
     self.ex_steering = DiscreteStateSpace(H, dt)
 
     # don't change this
