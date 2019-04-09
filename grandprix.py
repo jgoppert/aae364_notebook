@@ -160,8 +160,8 @@ class Sim:
     self.radius = 1
     self.width = 0.05
     self.l_cm = 0.01 # distance from center of mass to front wheel
-    self.disturbance_mag_xy = 1e-2 # disturbance due to unmodelled effects
-    self.disturbance_mag_theta = 1e-2 # magnitude of theta disturbance
+    self.disturbance_mag_xy = 2e-1 # disturbance due to unmodelled effects
+    self.disturbance_mag_theta = 1e-1 # magnitude of theta disturbance
     self.noise_mag = 1e-2 # magnitude of noise for error signal
     
     # actuators
@@ -199,7 +199,7 @@ class Sim:
       error = self.G.vee(self.G.log(np.linalg.inv(Xr).dot(X)))
       
       # add noise
-      error += self.enable_noise*self.noise_mag*np.sin(30*2*np.pi*t + phi_noise)*velocity
+      error += self.enable_noise*self.noise_mag*(np.sin(30*2*np.pi*t + phi_noise))*velocity
       
       # check if you ran off the track
       if np.abs(np.sqrt(x**2 + y**2) - self.radius) > self.width:
@@ -222,7 +222,7 @@ class Sim:
       velocity = throttle
         
       # simulate disturbance in body frame
-      dist = self.enable_disturbance*(1 + np.sin(20*t*2*np.pi + phi_dist))*velocity
+      dist = self.enable_disturbance*(0.2 + np.sin(20*t*2*np.pi + phi_dist + np.random.randn()))*velocity
       disturbance_x = dist*self.disturbance_mag_xy
       disturbance_theta = dist*self.disturbance_mag_theta
       
