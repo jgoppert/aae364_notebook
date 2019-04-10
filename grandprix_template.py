@@ -22,23 +22,24 @@ class Controller:
     ###
     s = control.tf([1, 0], [0, 1])
     
-    H = 0.05 + 0/s + 0.05*s*10/(s+10)
+    H = 1 + 0/s + 1*s*20/(s+20)
     self.ex_steering = DiscreteStateSpace(H, dt)
 
     # don't change this
-    self.desired_speed = 10
+    self.desired_speed = 1
   
-  def update(self, error, velocity):
+  def update(self, error, u_ref):
     """
     current state:
     @param error: [etheta, ex, ey]
-    @param velocity: how fast you are moving, m/s
+    @param u_ref: [omega_ref, x_ref, velocity_ref]
     
     ouput
     @param throttle: the throttle to the motor, commands velocity m/s
     @param steering: the steering angle of the vehicle in radians
     """
     etheta, ex, ey = error
+    omega_ref, x_ref, velocity_ref = u_ref
     
     ###
     ### WRITE YOUR CODE HERE TO CONTROL THE CAR

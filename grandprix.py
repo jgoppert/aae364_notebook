@@ -125,18 +125,14 @@ test_SE2()
 
 class Sim:
   
-  def __init__(self, Controller, dt=0.001, tf=0.1*2*np.pi, verbose=False):
+  def __init__(self, Controller):
     """
     Setup the sim and load the controller.
     """
     self.G = SE2()
-    self.dt = dt
-    self.tf = tf
-    self.controller = Controller(dt)
     self.data = {
         't': [],
         'theta': [],
-        'alpha': [],
         'x': [],
         'y': [],
         'theta_r': [],
@@ -148,28 +144,37 @@ class Sim:
         'wheel': [],
         'e_theta': [],
         'e_x': [],
-        'e_y': []
+        'e_y': [],
+        'track_left_x': [],
+        'track_left_y': [],
+        'track_right_x': [],
+        'track_right_y': [],
+        'off_track': [],
     }
     
     # you can turn on/off noise and disturbance here
     self.enable_noise = 1 # turn on noise (0 or 1)
     self.enable_disturbance = 1 # turn on disturbance (0 or 1)
     
-    # reference trajectory parameters
-    self.verbose = verbose
-    self.radius = 1
-    self.width = 0.05
-    self.l_cm = 0.01 # distance from center of mass to front wheel
-    self.disturbance_mag_xy = 2e-1 # disturbance due to unmodelled effects
-    self.disturbance_mag_theta = 1e-1 # magnitude of theta disturbance
-    self.noise_mag = 1e-2 # magnitude of noise for error signal
+    # parameters
+    self.dt = 0.001  # time increment for controller and data storage
+    self.tf = 5  # final time
+    self.track = [1, -1, 1, 1, 1, -1, 1, 1]  # describes track shape
+    self.track_length = 5  # length of track in meters
+    self.verbose = False  # show messages
+    self.width = 0.05  # the width of the track in meters
+    self.wheelbase = 0.01 # distance from rear axle to front axle
+    self.disturbance_mag_x = 0 # disturbance due to unmodelled effects
+    self.disturbance_mag_theta = 1 # magnitude of theta disturbance
+    self.noise_mag = 5e-1 # magnitude o5 noise for error signal
+    self.off_track_velocity_penalty = 0.5 # fraction of true velocity when off track [0-1]
     
-    # actuators
-    s = control.tf([1, 0], [0, 1])
+    # setup controller
+    self.controller = Controller(self.dt)
 
     if self.verbose:
       print('sim initialized')
-
+    
   def run(self):
     if self.verbose:
       print('sim started')
@@ -180,15 +185,14 @@ class Sim:
     
     # put the car at the starting line, facing the right direction
     theta0 = 0
-    x0 = self.radius + self.width/2
+    x0 = self.width/2
     y0 = 0
     X = self.G.from_params([theta0, x0, y0])
-    Xr = self.G.from_params([theta0, self.radius, 0])
-    
+    Xr = self.G.from_params([theta0, 0, 0])
+
     # start reference position as starting line
-    alpha_last = np.arctan2(y0, x0)
-    distance = 0
     velocity = 0
+    t_track = 0
     
     for t in np.arange(0, self.tf, self.dt):
       
@@ -196,18 +200,42 @@ class Sim:
       theta_r, x_r, y_r = self.G.to_params(Xr)
       theta, x, y = self.G.to_params(X)
       Xr = self.G.from_params([theta_r, x_r, y_r])
+      track_left = Xr.dot(self.G.from_params([0, self.width, 0]))
+      track_right = Xr.dot(self.G.from_params([0, -self.width, 0]))
+      track_left_theta, track_left_x, track_left_y = self.G.to_params(track_left)
+      track_right_theta, track_right_x, track_right_y = self.G.to_params(track_right)
+
       error = self.G.vee(self.G.log(np.linalg.inv(Xr).dot(X)))
-      
+
+      # check if you ran off the track
+      if (np.abs(error[1])  > self.width):
+        off_track = True
+      else:
+        off_track = False
+
+      # reference trajectory, the race course
+      t_lap = self.track_length/self.controller.desired_speed
+      leg_d = self.track_length/len(self.track)
+      leg_dt = leg_d/self.controller.desired_speed
+      u_r = np.array([0, 0, 0])
+      for i_leg, turn in enumerate(self.track):
+        t_track_lap = t_track % t_lap
+        if t_track_lap < (i_leg + 1)*leg_dt:
+          u_r = np.array([self.track[i_leg]*np.pi/2/leg_dt, 0, self.controller.desired_speed])
+          break
+      if error[2] > -self.controller.desired_speed*self.dt:
+        t_track += self.dt
+      else:
+        u_r = np.array([0, 0, 0])
+
       # add noise
       error += self.enable_noise*self.noise_mag*(np.sin(30*2*np.pi*t + phi_noise))*velocity
-      
-      # check if you ran off the track
-      if np.abs(np.sqrt(x**2 + y**2) - self.radius) > self.width:
-        print('CRASH at time {:10.4f} seconds'.format(t))
-        return 0
-        
+
+      dXr = self.G.exp(self.G.wedge(u_r*self.dt))
+      Xr = Xr.dot(dXr)
+
       # call the controller
-      throttle, steering = self.controller.update(error, velocity)
+      throttle, steering = self.controller.update(error, u_r)
 
       # update actuators
       if throttle < 0:
@@ -220,38 +248,24 @@ class Sim:
         steering = -1
       wheel = steering
       velocity = throttle
+      if off_track:
+        velocity = (1-self.off_track_velocity_penalty)*velocity
         
       # simulate disturbance in body frame
-      dist = self.enable_disturbance*(0.2 + np.sin(20*t*2*np.pi + phi_dist + np.random.randn()))*velocity
-      disturbance_x = dist*self.disturbance_mag_xy
+      dist = self.enable_disturbance*(0.2 + np.sin(3*t*2*np.pi + phi_dist + np.random.randn()))*velocity
+      disturbance_x = dist*self.disturbance_mag_x
       disturbance_theta = dist*self.disturbance_mag_theta
       
       # integrate trajectory
-      dtheta = velocity*np.tan(wheel)/self.l_cm + disturbance_theta
+      dtheta = velocity*np.tan(wheel)/self.wheelbase + disturbance_theta
       dx = disturbance_x
       dy = velocity
       u = np.array([dtheta, dx, dy])
       dX = self.G.exp(self.G.wedge(u*self.dt))
       X = X.dot(dX)
-      
-      # reference trajectory, the race course
-      u_r = np.array([self.controller.desired_speed/self.radius, 0, self.controller.desired_speed])
-      dXr = self.G.exp(self.G.wedge(u_r*self.dt))
-      Xr = Xr.dot(dXr)
-
-      # track distance travelled
-      alpha = np.arctan2(y, x)
-      delta_alpha = alpha - alpha_last
-      if delta_alpha > np.pi:
-        delta_alpha -= 2*np.pi
-      elif delta_alpha < -np.pi:
-        delta_alpha += 2*np.pi
-      distance += delta_alpha*self.radius
-      alpha_last = alpha
 
       # store data
       self.data['t'].append(t)
-      self.data['alpha'].append(alpha)
       self.data['theta'].append(theta)
       self.data['x'].append(x)
       self.data['y'].append(y)
@@ -265,31 +279,35 @@ class Sim:
       self.data['e_theta'].append(error[0])
       self.data['e_x'].append(error[1])
       self.data['e_y'].append(error[2])
+      self.data['track_left_x'].append(track_left_x)
+      self.data['track_left_y'].append(track_left_y)
+      self.data['track_right_x'].append(track_right_x)
+      self.data['track_right_y'].append(track_right_y)
+      self.data['off_track'].append(off_track)
 
     # convert lists to numpy array for faster plotting
     for k in self.data.keys():
       self.data[k] = np.array(self.data[k])
     
+    distance = t_track*self.controller.desired_speed + error[2]
     if self.verbose:
       print('sim complete')
-      print('you made it: {:10.4f} m'.format(distance))
+      print('Distance: {:10.4f} m'.format(distance))
     
     return distance
  
   def plot(self):
     theta = np.linspace(0, 2*np.pi, 1000)
     plt.figure(figsize=(10, 10))
-    plt.plot(
-        (self.radius + self.width)*np.cos(theta),
-        (self.radius + self.width)*np.sin(theta), 'r--')
-    plt.plot(
-        (self.radius - self.width)*np.cos(theta),
-        (self.radius - self.width)*np.sin(theta),
-        'r--', label='track')
+    plt.plot(self.data['track_left_x'], self.data['track_left_y'], 'g-', label='track', linewidth=3, alpha=0.5)
+    plt.plot(self.data['track_right_x'], self.data['track_right_y'], 'g-', linewidth=3, alpha=0.5)
+    plt.plot(self.data['x_r'], self.data['y_r'], 'r-', label='reference', linewidth=3, alpha=0.5)
     plt.plot(self.data['x'], self.data['y'], 'b', label='vehicle')
-    plt.plot(self.data['x_r'], self.data['y_r'], 'r--', label='reference')
     plt.legend()
     plt.axis('equal')
+    plt.title('track')
+    plt.xlabel('East')
+    plt.ylabel('North')
     plt.grid()
 
     plt.figure(figsize=(10, 30))
