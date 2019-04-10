@@ -240,8 +240,8 @@ class Sim:
       # update actuators
       if throttle < 0:
         throttle = 0
-      elif throttle > 10:
-        throttle = 10
+      elif throttle > 1:
+        throttle = 1
       if steering > 1:
         steering = 1
       elif steering < -1:
