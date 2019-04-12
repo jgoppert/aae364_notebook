@@ -168,6 +168,7 @@ class Sim:
     self.disturbance_mag_theta = 1 # magnitude of theta disturbance
     self.noise_mag = 5e-1 # magnitude o5 noise for error signal
     self.off_track_velocity_penalty = 0.5 # fraction of true velocity when off track [0-1]
+    self.desired_speed = 2  # desired speed of reference point
     
     # setup controller
     self.controller = Controller(self.dt)
@@ -192,7 +193,7 @@ class Sim:
 
     # start reference position as starting line
     velocity = 0
-    t_track = 0
+    distance = 0
     
     for t in np.arange(0, self.tf, self.dt):
       
@@ -214,17 +215,17 @@ class Sim:
         off_track = False
 
       # reference trajectory, the race course
-      t_lap = self.track_length/self.controller.desired_speed
+      t_lap = self.track_length/self.desired_speed
       leg_d = self.track_length/len(self.track)
-      leg_dt = leg_d/self.controller.desired_speed
+      leg_dt = leg_d/self.desired_speed
       u_r = np.array([0, 0, 0])
       for i_leg, turn in enumerate(self.track):
-        t_track_lap = t_track % t_lap
-        if t_track_lap < (i_leg + 1)*leg_dt:
-          u_r = np.array([self.track[i_leg]*np.pi/2/leg_dt, 0, self.controller.desired_speed])
+        d_lap = distance % self.track_length
+        if d_lap < (i_leg + 1)*leg_d:
+          u_r = np.array([self.track[i_leg]*np.pi/2/leg_dt, 0, self.desired_speed])
           break
-      if error[2] > -self.controller.desired_speed*self.dt:
-        t_track += self.dt
+      if error[2] > 0:
+        distance += self.desired_speed*self.dt
       else:
         u_r = np.array([0, 0, 0])
 
@@ -288,8 +289,7 @@ class Sim:
     # convert lists to numpy array for faster plotting
     for k in self.data.keys():
       self.data[k] = np.array(self.data[k])
-    
-    distance = t_track*self.controller.desired_speed + error[2]
+ 
     if self.verbose:
       print('sim complete')
       print('Distance: {:10.4f} m'.format(distance))
