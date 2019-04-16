@@ -169,6 +169,7 @@ class Sim:
     self.noise_mag = 5e-1 # magnitude o5 noise for error signal
     self.off_track_velocity_penalty = 0.5 # fraction of true velocity when off track [0-1]
     self.desired_speed = 2  # desired speed of reference point
+    self.crash_distance = 0.2
     
     # setup controller
     self.controller = Controller(self.dt)
@@ -194,6 +195,7 @@ class Sim:
     # start reference position as starting line
     velocity = 0
     distance = 0
+    crashed = False
     
     for t in np.arange(0, self.tf, self.dt):
       
@@ -213,6 +215,10 @@ class Sim:
         off_track = True
       else:
         off_track = False
+
+      # check if you are way off track
+      if (np.abs(error[1]) > self.crash_distance):
+        crashed = True
 
       # reference trajectory, the race course
       t_lap = self.track_length/self.desired_speed
@@ -249,7 +255,10 @@ class Sim:
         steering = -1
       wheel = steering
       velocity = throttle
-      if off_track:
+
+      if crashed:
+        velocity = 0
+      elif off_track:
         velocity = (1-self.off_track_velocity_penalty)*velocity
         
       # simulate disturbance in body frame
