@@ -1,48 +1,8 @@
-# AAE 364 Class Notebook
+# AAE 364 Class Notebook [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jgoppert/aae364_notebook/master) [<img src="https://jupyter.org/assets/main-logo.svg" height="20" title="JupyterLab">](https://mybinder.org/v2/gh/jgoppert/aae364_notebook/master?urlpath=lab) [![nbviewer](https://img.shields.io/badge/view%20on-nbviewer-brightgreen.svg)](http://nbviewer.jupyter.org/github/jgoppert/aae364_notebook/tree/master)
 
 Using this notebook is not required, it is only used for in class examples.
 
 ## Getting Started
-* [Installing Python](https://www.youtube.com/watch?v=YJC6ldI3hWk)
-* [Github Crash Course](https://www.youtube.com/watch?v=SWYqp7iY_Tc)
-* [Jupyter Notebooks](https://www.youtube.com/watch?v=HW29067qVWk)
-* [JupyterLab](https://www.youtube.com/watch?v=ctOM-Gza04Y)
 
-## Install Anaconda
-
-* [Download](https://www.anaconda.com/download/#linux)
-
-If you are using [ROS](http://www.ros.org/) with linux, I would recommend not to install anaconda to your system path, as it will override the python version that ROS expects. Instead, create a symbolic link to activate in your ~/bin folder, which automatically gets added to your path if it exists:
-
-```bash
-mkdir -p ~/bin
-cd ~/bin
-ln -s ~/anaconda3/bin/activate activate
-```
-
-Then log out and log back in and now activate should be on your path.
-
-## Environment Installation
-
-Use git to download this notebook.
-
-```bash
-mkdir -p ~/git
-cd ~/git
-git clone git@github.com:jgoppert/aae364_notebook
-```
-
-Create your environment from the environment.yml file.
-
-```bash
-cd ~/aae364_notebook
-conda env create -f environment.yml
-```
-
-## Start JupyterLab
-
-```bash
-. activate aae364
-cd ~/aae364_notebook
-jupyter lab
-```
+* To start an interative session, click the binder or jupyterlab badges above.
+* To view the notebooks, click on the viewer link.
