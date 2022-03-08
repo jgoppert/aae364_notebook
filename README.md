@@ -6,3 +6,17 @@ Using this notebook is not required, it is only used for in class examples.
 
 * To start an interative session, click the binder or jupyterlab badges above.
 * To view the notebooks, click on the viewer link.
+
+## Topics
+
+* T1: Introduction to Control Systems
+* T2: Mathematical Modeling of Control Systems
+* T3: First and Second Order Systems
+* T4: Transient Response Specifications, Routh Stability Criterion
+* T5: System Type and Steady State Error
+* T6: Root Locus
+* T7: Lag/Lead/PID Compensators
+* T8: Controller Design via Root Locus
+* T9: Controller Design via Bode Plot
+* T10: Nyquist Plot
+
